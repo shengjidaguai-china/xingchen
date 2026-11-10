@@ -245,8 +245,27 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 1px solid 
   color: #f2ece1;
 }
 #prologue::backdrop { background: transparent; }
+#prologue.playing { background: transparent; }
+#prologue[open]:not(.playing)::before {
+  content: "";
+  position: absolute;
+  top: 46%;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #cfeeff;
+  box-shadow: 0 0 11px 3px #5bacdf;
+  animation: prologue-star 1.2s ease-in-out infinite alternate;
+}
+@keyframes prologue-star {
+  from { opacity: .25; }
+  to { opacity: .95; }
+}
+html.prologue-active #atlas-ui { opacity: var(--atlas-reveal, 0); }
+
 #prologue canvas { display: block; width: 100%; height: 100%; }
-#prologue button, .prologue-copy { position: absolute; }
+#prologue button { position: absolute; }
 #prologue button {
   top: clamp(18px, 4vw, 38px);
   right: clamp(18px, 4vw, 46px);
@@ -258,28 +277,9 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 1px solid 
   font-size: 11px;
 }
 .prologue-copy {
-  top: 46%;
-  left: 50%;
-  width: max-content;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  text-shadow: 0 0 28px #020611, 0 2px 12px #020611;
-  opacity: 0;
-  pointer-events: none;
-}
-.prologue-copy h2 {
-  margin: 0 0 13px;
-  padding-left: .28em;
-  color: #fff4e5;
-  font-family: "Songti SC", "Noto Serif CJK SC", Georgia, serif;
-  font-size: clamp(48px, 8vw, 108px);
-  letter-spacing: .28em;
-  font-weight: 400;
-}
-.prologue-copy p {
-  margin: 0;
-  padding-left: .44em;
-  color: #c7dfef;
-  font: 400 clamp(11px, 1.2vw, 16px) Georgia, serif;
-  letter-spacing: .44em;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
 }

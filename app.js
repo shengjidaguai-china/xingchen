@@ -157,21 +157,35 @@ function renderPhase(){
  if(document.activeElement!==$('#aperture'))$('#aperture').value=opening*100;
 }
 function resize(){W=innerWidth;H=innerHeight;D=Math.min(devicePixelRatio,1.5);canvas.width=Math.round(W*D);canvas.height=Math.round(H*D);if(gl)gl.viewport(0,0,canvas.width,canvas.height);inkCanvas.width=canvas.width;inkCanvas.height=canvas.height;}
-function frame(ms){let dt=Math.min((ms-last)/1000,.12);last=ms;time=ms/1000;let ease=1-Math.exp(-dt*(cameraOn?12:7));advanceOpening(dt);yaw=mix(yaw,clamp(targetYaw,-frontView.yaw,frontView.yaw),ease);pitch=mix(pitch,clamp(targetPitch,-.08,frontView.pitch),ease);advanceMorph(dt);
+function paintPrologue(sequence, drawBody){
+ const savedOpening=opening,savedOrbit=orbitAngle;
+ opening=sequence.opening;orbitAngle=sequence.orbit;
+ drawBody(2,bodyScale(2)*sequence.scale,sequence.light);
+ opening=savedOpening;orbitAngle=savedOrbit;
+ if(sequence.reveal>0)drawBody(0,bodyScale(0),sequence.reveal);
+}
+function drawBody(id,scale,opacity){
+ drawPhoto(id,scale,opacity);
+ drawPoints(modelBuffers[id],N,scale,opacity);
+}
+function drawSky(){
  gl.disable(gl.DEPTH_TEST);gl.disable(gl.BLEND);useProgram(bg);attr(bg,'aPosition',quad,2);uniform(bg,'uTime',time);uniform(bg,'uAspect',W/H);uniform(bg,'uView',yaw,pitch);gl.drawArrays(gl.TRIANGLES,0,6);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE);drawPoints(starBuffers,2300,1,1);
- if(bodyBuffers){
+}
+function frame(ms){let dt=Math.min((ms-last)/1000,.12);last=ms;time=ms/1000;let ease=1-Math.exp(-dt*(cameraOn?12:7));advanceOpening(dt);yaw=mix(yaw,clamp(targetYaw,-frontView.yaw,frontView.yaw),ease);pitch=mix(pitch,clamp(targetPitch,-.08,frontView.pitch),ease);advanceMorph(dt);
+ if(prologue.waiting){requestAnimationFrame(frame);return;}
+ const sequence=prologue.frame(ms);
+ drawSky();
+ if(sequence){
+  paintPrologue(sequence,drawBody);
+ }else if(bodyBuffers){
   const autoYaw=Math.sin(time*.13)*.055;
   yaw+=autoYaw;
   const oldId=Math.max(0,modelBuffers.indexOf(previousBuffers));
-  if(oldId!==bodyIndex){
-   drawPhoto(oldId,bodyScale(oldId),1-transition);
-   drawPoints(previousBuffers,N,bodyScale(oldId),1-transition);
-  }
-  drawPhoto(bodyIndex,bodyScale(bodyIndex),transition);
-  drawPoints(bodyBuffers,N,bodyScale(bodyIndex),transition);
+  if(oldId!==bodyIndex)drawBody(oldId,bodyScale(oldId),1-transition);
+  drawBody(bodyIndex,bodyScale(bodyIndex),transition);
   yaw-=autoYaw;
  }
- renderPhase();
+ if(!sequence)renderPhase();
  if(!gl.isContextLost())requestAnimationFrame(frame);
 }
 function mouse(e){if(cameraOn)return;mode='mouse';targetYaw=clamp((e.clientX/W-.5)*.40,-frontView.yaw,frontView.yaw);targetPitch=clamp(basePitch(bodyIndex)+(e.clientY/H-.5)*.22,-.08,frontView.pitch);status('滚轮或滑杆 · 星图化为旋转星尘');}
@@ -389,8 +403,28 @@ function drawSkeleton(hands,labels=[],mainIndex=-1){
 }
 addEventListener('resize',resize);addEventListener('pagehide',()=>{stream?.getTracks().forEach(t=>t.stop());});
 
-async function boot(){try{if(!gl){await startCanvasUniverse();return;}initGL();resize();requestAnimationFrame(frame);await loadObservations();status('完整星图 · 张开手掌或滚轮放大，化为旋转星尘');}catch(e){status('画面加载失败：'+e.message);toast(e.message);let retry=document.createElement('button');retry.textContent='恢复宇宙画面 ↻';retry.className='recover-scene';retry.onclick=()=>location.reload();document.body.append(retry);console.error(e);}}
-
+async function boot(){
+ try{
+  if(!gl){
+   await startCanvasUniverse();
+  }else{
+   initGL();resize();requestAnimationFrame(frame);
+   await loadObservations();
+   if(prologue.waiting){
+    // Submit the photo and dust shaders under the loading overlay before timing the reveal.
+    drawSky();
+    paintPrologue({opening:.42,scale:1,orbit:0,light:1,reveal:.2},drawBody);
+    gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array(4));
+    await new Promise(requestAnimationFrame);
+   }
+   status('完整星图 · 张开手掌或滚轮放大，化为旋转星尘');
+  }
+  prologue.start();
+ }catch(e){
+  prologue.close();
+  status('画面加载失败：'+e.message);toast(e.message);let retry=document.createElement('button');retry.textContent='恢复宇宙画面 ↻';retry.className='recover-scene';retry.onclick=()=>location.reload();document.body.append(retry);console.error(e);
+ }
+}
 
 addEventListener('error',e=>{status('画面异常：'+e.message);});
 
