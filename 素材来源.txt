@@ -26,3 +26,6 @@ SIL Open Font License 1.1 见 assets/fonts/Noto-Serif-SC-OFL.txt。
 
 手势识别
 MediaPipe Tasks Vision、TensorFlow.js 与其模型的来源和许可证见 vendor/NOTICE.txt 和 vendor/tfjs/README.md。
+
+背景音乐
+《星尘》环境音乐（assets/stardust-ambient.mp3），由本项目合成，随项目按 MIT 许可提供。
