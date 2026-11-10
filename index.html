@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>星辰入轨 · 掌中宇宙</title><meta name="description" content="张开手掌，让星云化为旋转星尘。可用摄像头手势或鼠标体验的互动星图。"><link rel="stylesheet" href="style.css?v=xingchen-1"></head><body>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>星辰入轨 · 掌中宇宙</title><meta name="description" content="张开手掌，让星云化为旋转星尘。可用摄像头手势或鼠标体验的互动星图。"><link rel="stylesheet" href="style.css?v=xingchen-2"></head><body>
 <canvas id="scene" aria-label="从星图渐变为同色三维旋转星尘"></canvas>
 <canvas id="ink" aria-label="临时发光字迹"></canvas>
 <div class="reading-shade" aria-hidden="true"></div>
@@ -12,6 +12,11 @@
   </nav>
 </header>
 <div class="object"><span class="label" id="objectNumber">01 / M42</span><h2 id="objectName">猎户云海</h2><em id="objectEnglish">The Orion Clouds</em></div>
+<div class="editorial">
+  <span class="label">HOLD A LITTLE INFINITY.</span>
+  <p class="editorial-title" lang="en">A universe,<br><em>in your hands.</em></p>
+  <p class="editorial-caption">合掌，云海归拢。展掌，星辰入轨。</p>
+</div>
 <aside aria-label="天体图鉴"><div class="catalog-label"><span class="label">天体图鉴</span></div><button data-body="0" class="active"><small>01</small>猎户云海<span>↗</span></button><button data-body="1"><small>02</small>风车星系<span>↗</span></button><button data-body="2"><small>03</small>星云之花<span>↗</span></button><div class="stage-caption">星云形变</div><div class="aperture-label"><span id="phase">完整星图</span><b id="amount">000%</b></div><div class="meter"><i id="meter"></i></div><input id="aperture" aria-label="星图到旋转星尘" type="range" step="0.1" min="0" max="100" value="0"><p class="gesture-guide">主手捏合 · 星图　张开 · 星尘<br>主手移动 · 轻转视角<br>副手自然侧挥 · 下一个天体<br>副手只伸食指 · 流星光笔</p></aside>
 <footer>
 <section id="cameraFrame" aria-label="手势摄像头预览" hidden>
@@ -21,4 +26,13 @@
   <div class="camera-bottom"><span id="gestureHint">副手侧挥切换 · 只伸食指写字</span><div id="gestureMeter"><i></i></div></div>
 </section>
 <div class="state"><i></i><span id="status" role="status">正在唤醒星尘…</span></div><div class="actions"><button id="toggleCameraPreview" type="button" aria-controls="cameraFrame" aria-expanded="false" hidden>显示预览</button><button id="start" class="primary">开启手掌交互 ↗</button></div></footer>
-<div class="credit" id="photoCredit"><a href="https://esahubble.org/images/heic0601a/" target="_blank" rel="noopener noreferrer">NASA, ESA, M. Robberto (Space Telescope Science Institute/ESA) and the Hubble Space Telescope Orion Treasury Project Team</a> · <a href="./素材来源.txt" target="_blank" rel="noopener">素材与许可 ↗</a></div><div id="toast" role="status"></div><div class="clean-hint">按 H 恢复界面</div><script src="app.js?v=xingchen-1"></script><script src="hand-runtime.js?v=xingchen-1"></script><script src="canvas-universe.js?v=xingchen-1"></script><script src="volume.js?v=xingchen-1"></script></body></html>
+<div class="credit" id="photoCredit"><a href="https://esahubble.org/images/heic0601a/" target="_blank" rel="noopener noreferrer">NASA, ESA, M. Robberto (Space Telescope Science Institute/ESA) and the Hubble Space Telescope Orion Treasury Project Team</a> · <a href="./素材来源.txt" target="_blank" rel="noopener">素材与许可 ↗</a></div><div id="toast" role="status"></div><div class="clean-hint">按 H 恢复界面</div><dialog id="prologue" aria-labelledby="prologue-title">
+  <canvas aria-hidden="true"></canvas>
+  <div class="prologue-copy">
+    <span class="label">PROLOGUE / 01</span>
+    <h2 id="prologue-title">星云之花</h2>
+    <p lang="en">The Celestial Bloom</p>
+  </div>
+  <button type="button" autofocus>跳过序章 ↗</button>
+</dialog>
+<script src="intro.js?v=xingchen-2"></script><script src="app.js?v=xingchen-1"></script><script src="hand-runtime.js?v=xingchen-1"></script><script src="canvas-universe.js?v=xingchen-1"></script><script src="volume.js?v=xingchen-1"></script></body></html>
