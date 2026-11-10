@@ -1,0 +1,23 @@
+星辰入轨 · 画面素材与第三方组件
+
+猎户云海 M42
+NASA, ESA, M. Robberto (Space Telescope Science Institute/ESA) and the Hubble Space Telescope Orion Treasury Project Team
+原图 https://esahubble.org/images/heic0601a/
+
+风车星系 M101
+Image: European Space Agency & NASA
+Project Investigators for the original Hubble data: K.D. Kuntz (GSFC), F. Bresolin (University of Hawaii), J. Trauger (JPL), J. Mould (NOAO), and Y.-H. Chu (University of Illinois, Urbana)
+Image processing: Davide De Martin (ESA/Hubble)
+CFHT image: Canada-France-Hawaii Telescope/J.-C. Cuillandre/Coelum
+NOAO image: George Jacoby, Bruce Bohannan, Mark Hanna/NOAO/AURA/NSF
+原图 https://esahubble.org/images/heic0602a/
+
+以上原图依据 CC BY 4.0 使用 https://creativecommons.org/licenses/by/4.0/
+ESA/Hubble 使用条款 https://esahubble.org/copyright/
+本项目对图像进行了采色、边缘融合、深度形变和粒子化处理，呈现的是三维艺术重构。
+
+星云之花
+AI 生成图像，作为独立艺术场景展示。
+
+手势识别
+MediaPipe Tasks Vision、TensorFlow.js 与其模型的来源和许可证见 vendor/NOTICE.txt 和 vendor/tfjs/README.md。
