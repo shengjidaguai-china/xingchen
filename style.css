@@ -258,22 +258,28 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 1px solid 
   font-size: 11px;
 }
 .prologue-copy {
-  bottom: max(7vh, 38px);
-  left: clamp(24px, 6vw, 84px);
-  padding-left: 17px;
-  border-left: 1px solid #e2c59880;
-  text-shadow: 0 2px 18px #020611;
-  animation: prologue-title 2.1s .95s both;
+  top: 46%;
+  left: 50%;
+  width: max-content;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  text-shadow: 0 0 28px #020611, 0 2px 12px #020611;
+  opacity: 0;
+  pointer-events: none;
 }
-.prologue-copy .label { color: #dfc49a; }
 .prologue-copy h2 {
-  margin: 10px 0 6px;
-  font-size: clamp(22px, 3.1vw, 43px);
-  letter-spacing: .18em;
+  margin: 0 0 13px;
+  padding-left: .28em;
+  color: #fff4e5;
+  font-family: "Songti SC", "Noto Serif CJK SC", Georgia, serif;
+  font-size: clamp(48px, 8vw, 108px);
+  letter-spacing: .28em;
   font-weight: 400;
 }
-.prologue-copy p { margin: 0; color: #c0d5e4; font: italic 15px Georgia, serif; }
-@keyframes prologue-title {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+.prologue-copy p {
+  margin: 0;
+  padding-left: .44em;
+  color: #c7dfef;
+  font: 400 clamp(11px, 1.2vw, 16px) Georgia, serif;
+  letter-spacing: .44em;
 }
