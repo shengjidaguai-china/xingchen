@@ -45,9 +45,9 @@ async function startCanvasUniverse(){
   return target.canvas;
  }
  function shape(u,v,id,l){return driftingPhotoPose(photoShape(u,v,id,l)[0],time);}
- function surface(id,alpha){
+ function surface(id,scale,alpha){
   if(alpha<.001||opening>.79)return;
-  const tex=fadingTexture(id),scale=bodyScale(id),viewYaw=yaw+Math.sin(time*.13)*.055,cy=Math.cos(viewYaw),sy=Math.sin(viewYaw),cx=Math.cos(pitch),sx=Math.sin(pitch),f=H*.95;
+  const tex=fadingTexture(id),viewYaw=yaw+Math.sin(time*.13)*.055,cy=Math.cos(viewYaw),sy=Math.sin(viewYaw),cx=Math.cos(pitch),sx=Math.sin(pitch),f=H*.95;
   const points=[];
   for(let y=0;y<=rows;y++)for(let x=0;x<=cols;x++){
    const p=shape(x/cols,1-y/rows,id,reliefs[id][y*(cols+1)+x]),xx=p[0]*cy+p[2]*sy,zz=-p[0]*sy+p[2]*cy,yy=p[1]*cx-zz*sx,z=(p[1]*sx+zz*cx)*scale,d=7.2-z;
@@ -77,9 +77,9 @@ async function startCanvasUniverse(){
   g.addColorStop(0,`rgba(${key},.85)`);g.addColorStop(.35,`rgba(${key},.32)`);g.addColorStop(1,`rgba(${key},0)`);cc.fillStyle=g;cc.fillRect(0,0,48,48);cloudSprites.set(key,c);return c;
  }
  const volumes=models.map(m=>m.volume.filter((_,i)=>i%4===0).map(p=>({...p,alpha:p.alpha*3.6,sprite:cloudSprite(p.color)})));
- function cloudVolume(id,alpha,front){
+ function cloudVolume(id,scale,alpha,front){
   if(alpha<.001||opening>.79)return;
-  const scale=bodyScale(id),viewYaw=yaw+Math.sin(time*.13)*.055,cy=Math.cos(viewYaw),sy=Math.sin(viewYaw),cx=Math.cos(pitch),sx=Math.sin(pitch),f=H*.95;
+  const viewYaw=yaw+Math.sin(time*.13)*.055,cy=Math.cos(viewYaw),sy=Math.sin(viewYaw),cx=Math.cos(pitch),sx=Math.sin(pitch),f=H*.95;
   ctx.globalCompositeOperation='screen';
   for(const p of volumes[id]){
    if((p.depth>0)!==front)continue;
@@ -103,9 +103,9 @@ async function startCanvasUniverse(){
   return {i,sprite:dustSprite(color,m.meta[i*4+2]),size:m.meta[i*4],alpha:m.meta[i*4+1],
    release:releaseAt(m.uv[i*2],m.uv[i*2+1])};
  }));
- function particlesVolume(id,alpha){
+ function particlesVolume(id,scale,alpha){
   if(alpha<.001||opening<.02)return;
-  const scale=bodyScale(id),viewYaw=yaw+Math.sin(time*.13)*.055;
+  const viewYaw=yaw+Math.sin(time*.13)*.055;
   const cy=Math.cos(viewYaw),sy=Math.sin(viewYaw),cx=Math.cos(pitch),sx=Math.sin(pitch),f=H*.95,m=models[id];
   ctx.globalCompositeOperation='lighter';
   for(const p of dust[id]){
@@ -123,24 +123,31 @@ async function startCanvasUniverse(){
   }
   ctx.globalCompositeOperation='source-over';
  }
- function celestialBody(id,alpha){
-  cloudVolume(id,alpha,false);
-  surface(id,alpha);
-  cloudVolume(id,alpha,true);
-  particlesVolume(id,alpha);
+ function celestialBody(id,scale,alpha){
+  cloudVolume(id,scale,alpha,false);
+  surface(id,scale,alpha);
+  cloudVolume(id,scale,alpha,true);
+  particlesVolume(id,scale,alpha);
  }
  status('完整星图 · 张开手掌或滚轮放大，化为旋转星尘');
  let painted=-100;
  function render(ms){
   if(ms-painted<33){requestAnimationFrame(render);return;}painted=ms;const renderStarted=performance.now();
+  const sequence=prologue.frame(ms);
   const dt=Math.min((ms-last)/1000,.12),ease=1-Math.exp(-dt*(cameraOn?12:7));last=ms;time=ms/1000;
   advanceOpening(dt);yaw=mix(yaw,clamp(targetYaw,-frontView.yaw,frontView.yaw),ease);pitch=mix(pitch,clamp(targetPitch,-.08,frontView.pitch),ease);advanceMorph(dt);
   ctx.setTransform(D,0,0,D,0,0);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.fillStyle='#030811';ctx.fillRect(0,0,W,H);
   const bg=ctx.createRadialGradient(W*(.48+.08*Math.sin(time*.03)),H*.48,0,W*.5,H*.5,W*.65);bg.addColorStop(0,'#0a1928');bg.addColorStop(.6,'#080e1c');bg.addColorStop(1,'#02050b');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
   for(const s of stars){ctx.globalAlpha=.16+.4*(.5+.5*Math.sin(time*.5+s.t));ctx.fillStyle='#b4d8ff';ctx.fillRect((s.x*W+time*.6)%W,s.y*H,s.r,s.r);}
-  const oldId=Math.max(0,modelBuffers.indexOf(previousBuffers));if(oldId!==bodyIndex)celestialBody(oldId,1-transition);celestialBody(bodyIndex,transition);
+  if(sequence){
+   paintPrologue(sequence,celestialBody);
+  }else{
+   const oldId=Math.max(0,modelBuffers.indexOf(previousBuffers));
+   if(oldId!==bodyIndex)celestialBody(oldId,bodyScale(oldId),1-transition);
+   celestialBody(bodyIndex,bodyScale(bodyIndex),transition);
+   renderPhase();
+  }
   ctx.globalAlpha=1;
-  renderPhase();
   canvas.dataset.renderMs=String(Math.round(performance.now()-renderStarted));requestAnimationFrame(render);
  }
  requestAnimationFrame(render);
