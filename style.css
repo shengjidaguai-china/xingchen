@@ -81,7 +81,9 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 1px solid 
   position: absolute;
   right: 0;
   bottom: calc(100% + 12px);
-  width: clamp(205px, 17vw, 258px);
+  --camera-default: clamp(205px, 17vw, 258px);
+  --camera-limit: min(520px, calc(100vw - 36px), max(122px, calc((100dvh - 195px) * 16 / 9)));
+  width: clamp(min(138px, var(--camera-limit)), var(--camera-width, var(--camera-default)), var(--camera-limit));
   aspect-ratio: 16 / 9;
   overflow: hidden;
   border: 1px solid var(--atlas-rule);
@@ -94,7 +96,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 1px solid 
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   transform: scaleX(-1);
 }
 .camera-top, .camera-bottom {
@@ -106,15 +108,15 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 1px solid 
 }
 .camera-top {
   top: 0;
-  padding: 7px 8px;
+  padding: 7px 8px 7px 29px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 4px;
   background: linear-gradient(#050b16dd, transparent);
 }
-.camera-top span { display: flex; align-items: center; gap: 5px; }
-.camera-top b { font-weight: 400; }
+.camera-top span { display: flex; align-items: center; gap: 5px; min-width: 0; }
+.camera-top b { font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .camera-top i {
   width: 5px;
   height: 5px;
@@ -123,6 +125,34 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 1px solid 
   background: #a0e4d0;
   box-shadow: 0 0 8px #9ec6b0;
 }
+#resizeCamera {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  width: 29px;
+  height: 29px;
+  padding: 7px;
+  color: #cee3ee;
+  cursor: nwse-resize;
+  touch-action: none;
+}
+#resizeCamera:hover, #resizeCamera:focus-visible { color: var(--atlas-gold); }
+#resizeCamera:focus-visible { outline-offset: -4px; }
+#resizeCamera svg { display: block; width: 100%; height: 100%; }
+#toggleMusic {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  padding: 7px;
+  color: #9eb3c5;
+}
+#toggleMusic svg { width: 100%; height: 100%; }
+#toggleMusic[aria-pressed="true"] { color: var(--atlas-gold); }
+#toggleMusic[aria-pressed="true"] .sound-off,
+#toggleMusic[aria-pressed="false"] .sound-waves { display: none; }
 #swapHands {
   flex: none;
   padding: 3px 5px;
@@ -143,10 +173,10 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 1px solid 
   body:has(#cameraFrame:not([hidden])) .gesture-guide { display: none; }
 }
 @media (max-width: 650px) {
-  #cameraFrame { width: clamp(138px, 39vw, 185px); }
+  #cameraFrame { --camera-default: clamp(138px, 39vw, 185px); }
 }
 @media (max-height: 600px) {
-  #cameraFrame { width: clamp(122px, 32vh, 185px); }
+  #cameraFrame { --camera-default: clamp(122px, 32vh, 185px); }
   body:has(#cameraFrame:not([hidden])) aside {
     max-height: max(72px, calc(100vh - 355px));
     overflow-y: auto;

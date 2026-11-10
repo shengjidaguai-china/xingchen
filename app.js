@@ -203,7 +203,44 @@ function mouse(e){if(cameraOn)return;mode='mouse';targetYaw=clamp((e.clientX/W-.
 canvas.addEventListener('pointermove',mouse);canvas.addEventListener('pointerdown',e=>{if(cameraOn)return;canvas.setPointerCapture(e.pointerId);targetOpening=1;mouse(e);});function release(){if(!cameraOn&&mode!=='slider')targetOpening=0;}canvas.addEventListener('pointerup',release);canvas.addEventListener('pointercancel',release);canvas.addEventListener('wheel',e=>{e.preventDefault();if(!cameraOn){mode='slider';targetOpening=clamp(targetOpening-e.deltaY*.0009);status('滚轮 · 缩小还原星图，放大释放星尘');}},{passive:false});
 $('#aperture').oninput=e=>{if(cameraOn)return;mode='slider';targetOpening=+e.target.value/100;status('星图 → 星尘 · 拖动滑杆观察渐变');};
 document.querySelectorAll('[data-body]').forEach(b=>b.onclick=()=>selectBody(+b.dataset.body));$('#clean').onclick=()=>document.body.classList.toggle('clean');addEventListener('keydown',e=>{if(e.code==='KeyH')document.body.classList.toggle('clean');if(e.code==='ArrowRight'&&!['INPUT','BUTTON'].includes(e.target.tagName))selectBody((bodyIndex+1)%bodies.length);if(e.code==='Space'&&!cameraOn&&e.target.tagName!=='BUTTON'&&e.target.tagName!=='INPUT'){e.preventDefault();mode='mouse';targetOpening=1;}});addEventListener('keyup',e=>{if(e.code==='Space'&&!cameraOn)targetOpening=0;});
+const ambientMusic=$('#ambientMusic'),musicToggle=$('#toggleMusic');
+function updateMusicToggle(){
+ const playing=!ambientMusic.paused&&!ambientMusic.error;
+ musicToggle.setAttribute('aria-pressed',String(playing));
+ musicToggle.title=playing?'暂停背景音乐':'播放背景音乐';
+}
+for(const event of ['play','pause','error'])ambientMusic.addEventListener(event,updateMusicToggle);
+musicToggle.onclick=()=>{
+ if(!ambientMusic.paused){ambientMusic.pause();return;}
+ ambientMusic.play().catch(error=>{
+  if(error.name!=='AbortError')toast('背景音乐暂时无法播放');
+ });
+};
+
 const cameraFrame=$('#cameraFrame'),previewToggle=$('#toggleCameraPreview'),cameraButton=$('#start');
+const cameraGrip=$('#resizeCamera');
+const previewSlope=9/16;
+let previewDrag;
+function setCameraWidth(width){
+ cameraFrame.style.setProperty('--camera-width',`${Math.max(0,width)}px`);
+}
+cameraGrip.addEventListener('pointerdown',event=>{
+ if(event.button!==0||previewDrag)return;
+ cameraGrip.setPointerCapture(event.pointerId);
+ previewDrag={id:event.pointerId,x:event.clientX,y:event.clientY,width:cameraFrame.getBoundingClientRect().width};
+});
+cameraGrip.addEventListener('pointermove',event=>{
+ if(event.pointerId!==previewDrag?.id)return;
+ const dx=previewDrag.x-event.clientX,dy=previewDrag.y-event.clientY;
+ setCameraWidth(previewDrag.width+(dx+previewSlope*dy)/(1+previewSlope*previewSlope));
+});
+cameraGrip.addEventListener('lostpointercapture',()=>{previewDrag=null;});
+cameraGrip.addEventListener('keydown',event=>{
+ const steps={ArrowLeft:24,ArrowUp:24,ArrowRight:-24,ArrowDown:-24};
+ if(!(event.key in steps))return;
+ event.preventDefault();
+ setCameraWidth(cameraFrame.getBoundingClientRect().width+steps[event.key]);
+});
 function setCameraPreview(visible){
  cameraFrame.hidden=!visible;
  previewToggle.hidden=!cameraOn;
