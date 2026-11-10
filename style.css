@@ -230,6 +230,12 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 1px solid 
   .editorial-title { font-size: 26px; }
 }
 
+@font-face {
+  font-family: "Prologue Serif";
+  src: url("assets/fonts/noto-serif-sc-title.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+}
 #prologue {
   position: fixed;
   inset: 0;

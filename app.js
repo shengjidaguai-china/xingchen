@@ -419,7 +419,7 @@ async function boot(){
    }
    status('完整星图 · 张开手掌或滚轮放大，化为旋转星尘');
   }
-  prologue.start();
+  await prologue.start();
  }catch(e){
   prologue.close();
   status('画面加载失败：'+e.message);toast(e.message);let retry=document.createElement('button');retry.textContent='恢复宇宙画面 ↻';retry.className='recover-scene';retry.onclick=()=>location.reload();document.body.append(retry);console.error(e);

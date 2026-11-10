@@ -3,11 +3,17 @@ const prologue = (() => {
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
   const canvas = dialog.querySelector('canvas');
   const root = document.documentElement;
-  const gatherAt = 2.5;
-  const settledAt = 3.8;
-  const revealAt = 5.2;
-  const endAt = 5.8;
-  let context, grains, startedAt, timeout;
+  const gatherAt = 1.75;
+  const settledAt = 3.05;
+  const revealAt = 5.8;
+  const endAt = 6.45;
+  const letterWidth = 420;
+  const letterHeight = 190;
+  const letterColor = '#f4f6ff';
+  const serif = '"Prologue Serif", "Songti SC", "Noto Serif CJK SC", Georgia, serif';
+  const title = dialog.querySelector('h2').textContent;
+  const subtitle = dialog.querySelector('[lang=en]').textContent;
+  let context, grains, lettering, fontReady, startedAt, timeout;
 
   function close() {
     clearTimeout(timeout);
@@ -19,6 +25,7 @@ const prologue = (() => {
 
   if (!motion.matches && dialog.showModal) {
     dialog.showModal();
+    fontReady = document.fonts.load(`400 104px ${serif}`, title + subtitle).catch(() => []);
     root.classList.add('prologue-active');
     motion.addEventListener('change', close);
     dialog.querySelector('button').addEventListener('click', close, {once: true});
@@ -29,54 +36,72 @@ const prologue = (() => {
     timeout = setTimeout(close, 6500);
   }
 
-  function start() {
+  async function start() {
+    if (!dialog.open) return;
+    await fontReady;
     if (!dialog.open) return;
     context = canvas.getContext('2d');
     if (!context) {
       close();
       return;
     }
-    grains = sampleLetters();
+    prepareLetters();
+    drawLetters(settledAt - .25);
     drawLetters(settledAt);
     context.resetTransform();
     context.clearRect(0, 0, canvas.width, canvas.height);
     clearTimeout(timeout);
   }
 
-  function sampleLetters() {
+  function prepareLetters() {
     const mask = document.createElement('canvas');
-    mask.width = 420;
-    mask.height = 190;
+    mask.width = letterWidth * 2;
+    mask.height = letterHeight * 2;
     const ink = mask.getContext('2d', {willReadFrequently: true});
-    const title = dialog.querySelector('h2').textContent;
-    const subtitle = dialog.querySelector('[lang=en]').textContent;
-    ink.fillStyle = '#fff';
+    ink.scale(2, 2);
+    ink.fillStyle = letterColor;
     ink.textAlign = 'center';
     ink.textBaseline = 'middle';
-    ink.font = '104px "Songti SC", "Noto Serif CJK SC", Georgia, serif';
-    [...title].forEach((letter, i) => ink.fillText(letter, 210 + (i - (title.length - 1) / 2) * 119, 77));
-    ink.font = '600 22px Georgia, serif';
-    [...subtitle].forEach((letter, i) => ink.fillText(letter, 210 + (i - (subtitle.length - 1) / 2) * 24, 154));
+    ink.font = `400 104px ${serif}`;
+    [...title].forEach((letter, i) => ink.fillText(letter, letterWidth / 2 + (i - (title.length - 1) / 2) * 130, 76));
+    ink.font = `400 19px ${serif}`;
+    const tracking = 7;
+    const letters = [...subtitle].map(letter => ({letter, width: ink.measureText(letter).width}));
+    const subtitleWidth = letters.reduce((total, {width}) => total + width, 0) + (letters.length - 1) * tracking;
+    let left = (letterWidth - subtitleWidth) / 2;
+    for (const {letter, width} of letters) {
+      ink.fillText(letter, left + width / 2, 151);
+      left += width + tracking;
+    }
     const pixels = ink.getImageData(0, 0, mask.width, mask.height).data;
 
     let seed = 531;
     const random = () => ((seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 2 ** 32);
-    const groups = [[], [], []];
-    for (let y = 0; y < mask.height; y += 2) {
-      for (let x = 0; x < mask.width; x += 2) {
+    grains = [];
+    for (let y = 0; y < mask.height; y += 4) {
+      for (let x = 0; x < mask.width; x += 4) {
         if (pixels[(y * mask.width + x) * 4 + 3] < 85) continue;
         const angle = random() * Math.PI * 2;
         const radius = .36 + random() * .53;
-        const band = random();
-        groups[band < .58 ? 0 : band < .84 ? 1 : 2].push({
-          x: x - 210 + random() - .5, y: y - 101 + random() - .5,
+        grains.push({
+          x: (x - mask.width / 2) / 2 + random() - .5,
+          y: y / 2 - 101 + random() - .5,
           dx: Math.cos(angle) * radius, dy: Math.sin(angle) * radius,
           delay: random() * .30, size: .54 + random() * .69,
           spark: random() > .97
         });
       }
     }
-    return groups;
+    lettering = document.createElement('canvas');
+    lettering.width = mask.width;
+    lettering.height = mask.height;
+    const glow = lettering.getContext('2d');
+    glow.shadowColor = 'rgba(244,246,255,.58)';
+    glow.shadowBlur = 26;
+    glow.drawImage(mask, 0, 0);
+    glow.shadowColor = 'rgba(244,246,255,.34)';
+    glow.shadowBlur = 8;
+    glow.drawImage(mask, 0, 0);
   }
 
   const ease = (from, to, t) => {
@@ -99,12 +124,12 @@ const prologue = (() => {
     const opacity = ease(gatherAt, gatherAt + .28, t);
     const sourceWidth = Math.min(w * .68, h * .83);
     const sourceHeight = h * .60;
-    const colors = ['#fff7e8', '#c9ecff', '#efcc93'];
-    context.globalAlpha = opacity;
-    for (let i = 0; i < grains.length; i++) {
-      context.fillStyle = colors[i];
+    const solid = ease(settledAt - .35, settledAt, t);
+    if (solid < 1) {
+      context.globalAlpha = opacity * (1 - solid);
+      context.fillStyle = letterColor;
       context.beginPath();
-      for (const p of grains[i]) {
+      for (const p of grains) {
         const settled = ease(gatherAt + p.delay, settledAt, t);
         const floating = 1 - settled;
         const arc = settled * floating * .9;
@@ -128,6 +153,10 @@ const prologue = (() => {
       }
       context.fill();
     }
+    if (solid > 0) {
+      context.globalAlpha = solid;
+      context.drawImage(lettering, -letterWidth / 2 * scale, -101 * scale, letterWidth * scale, letterHeight * scale);
+    }
   }
 
   function frame(ms) {
@@ -148,10 +177,10 @@ const prologue = (() => {
       root.style.setProperty('--atlas-reveal', String(reveal));
     }
     return {
-      opening: ease(.92, 2.62, t),
-      scale: .33 + .67 * ease(0, 1.19, t) + .15 * ease(1.3, 2.72, t),
-      orbit: Math.max(0, t - .9) * .49,
-      light: ease(0, .64, t) * (1 - .82 * ease(gatherAt, 3.45, t)) * (1 - reveal),
+      opening: ease(0, 1.9, t),
+      scale: 1.07,
+      orbit: t * .49,
+      light: (1 - .82 * ease(gatherAt, settledAt - .15, t)) * (1 - reveal),
       reveal
     };
   }
