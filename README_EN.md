@@ -19,15 +19,15 @@
 
 <h2 align="center">Try it in your browser</h2>
 
-Open the live site in desktop Chrome or Edge. Scroll or drag the slider to see the atlas dissolve into spinning stardust. Choose from the Orion Nebula M42, the Pinwheel Galaxy M101, and the AI-generated Celestial Bloom. The Celestial Bloom unfolds when you arrive. You can skip the prologue and use the scroll wheel or slider to try the transformation.
+Open the live site in desktop Chrome or Edge. The Celestial Bloom unfolds as you arrive. You can skip the prologue and scroll or drag the slider to transform the atlas. Choose from the Orion Nebula M42, the Pinwheel Galaxy M101, and Celestial Bloom in the catalog.
 
 | Interaction | Gesture guide | In the browser |
 | :--- | :---: | :---: |
 | **Atlas ↔ Stardust** | Pinch / open your main hand<br><img src="./docs/media/pinch-gesture.gif" width="156" alt="Pinch / open your main hand"> | <img src="./docs/media/pinch-effect.gif" width="330" alt="The nebula disperses into orbiting stardust"> |
 | **Switch scenes** | Swipe sideways with your other hand<br><img src="./docs/media/swipe-gesture.gif" width="156" alt="Swipe sideways with your other hand"> | <img src="./docs/media/swipe-effect.gif" width="330" alt="Orion fades into the Pinwheel Galaxy"> |
-| **Meteor pen** | Point, pause, then trace<br><img src="./docs/media/write-gesture.gif" width="156" alt="Point, pause, then trace"> | <img src="./docs/media/write-effect.gif" width="330" alt="Meteor trails follow a fingertip"> |
+| **Meteor pen** | Other hand · index finger only · pause, then trace<br><img src="./docs/media/write-gesture.gif" width="156" alt="Other hand · index finger only · pause, then trace"> | <img src="./docs/media/write-effect.gif" width="330" alt="Meteor trails follow a fingertip"> |
 
-The left animations illustrate the gestures. The right animations were recorded in the browser using simulated hand landmarks.
+The gesture GIFs illustrate each motion. The effect GIFs are browser recordings driven by simulated hand landmarks.
 
 Select the camera button and grant permission to see a mirrored 16:9 preview in the lower-right corner. Cyan landmarks identify the primary hand and gold landmarks identify the secondary hand. Swap roles in the preview or hide it while keeping gestures active. The browser processes camera frames and gestures on your device.
 
