@@ -5,18 +5,17 @@ const prologue = (() => {
   const root = document.documentElement;
   const gatherAt = 1.75;
   const settledAt = 3.05;
-  const revealAt = 5.8;
-  const endAt = 6.45;
+  const revealAt = 4.85;
+  const endAt = 5.5;
   const letterWidth = 420;
   const letterHeight = 190;
   const letterColor = '#f4f6ff';
   const serif = '"Prologue Serif", "Songti SC", "Noto Serif CJK SC", Georgia, serif';
   const title = dialog.querySelector('h2').textContent;
   const subtitle = dialog.querySelector('[lang=en]').textContent;
-  let context, grains, lettering, fontReady, startedAt, timeout;
+  let context, grains, lettering, fontReady, startedAt;
 
   function close() {
-    clearTimeout(timeout);
     dialog.close();
     root.classList.remove('prologue-active');
     root.style.removeProperty('--atlas-reveal');
@@ -33,7 +32,6 @@ const prologue = (() => {
       event.preventDefault();
       close();
     }, {once: true});
-    timeout = setTimeout(close, 6500);
   }
 
   async function start() {
@@ -50,7 +48,6 @@ const prologue = (() => {
     drawLetters(settledAt);
     context.resetTransform();
     context.clearRect(0, 0, canvas.width, canvas.height);
-    clearTimeout(timeout);
   }
 
   function prepareLetters() {
@@ -185,5 +182,12 @@ const prologue = (() => {
     };
   }
 
-  return {start, frame, close, get waiting() { return dialog.open && !grains; }};
+  return {
+    start, frame, close,
+    get waiting() { return dialog.open && !grains; },
+    get finished() {
+      if (!dialog.open) return Promise.resolve();
+      return new Promise(resolve => dialog.addEventListener('close', resolve, {once: true}));
+    }
+  };
 })();
