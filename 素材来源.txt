@@ -19,5 +19,10 @@ ESA/Hubble 使用条款 https://esahubble.org/copyright/
 星云之花
 AI 生成图像，作为独立艺术场景展示。
 
+序章字体
+Noto Serif SC Regular，来自 Google Fonts 的标题字形子集。
+来源 https://github.com/google/fonts/tree/main/ofl/notoserifsc
+SIL Open Font License 1.1 见 assets/fonts/Noto-Serif-SC-OFL.txt。
+
 手势识别
 MediaPipe Tasks Vision、TensorFlow.js 与其模型的来源和许可证见 vendor/NOTICE.txt 和 vendor/tfjs/README.md。
