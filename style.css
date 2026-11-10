@@ -232,7 +232,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 1px solid 
 
 @font-face {
   font-family: "Prologue Serif";
-  src: url("assets/fonts/noto-serif-sc-title.woff2") format("woff2");
+  src: url("assets/fonts/noto-serif-sc-stardust.woff2") format("woff2");
   font-style: normal;
   font-weight: 400;
 }
@@ -252,6 +252,16 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 1px solid 
 }
 #prologue::backdrop { background: transparent; }
 #prologue.playing { background: transparent; }
+#prologue.playing .prologue-loading { display: none; }
+.prologue-loading {
+  position: absolute;
+  top: calc(46% + 15px);
+  width: 100%;
+  text-align: center;
+  color: #cfe1f1;
+  font-size: 12px;
+  letter-spacing: .18em;
+}
 #prologue[open]:not(.playing)::before {
   content: "";
   position: absolute;

@@ -1,14 +1,15 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>星辰入轨 · 掌中宇宙</title><meta name="description" content="张开手掌，让星云化为旋转星尘。可用摄像头手势或鼠标体验的互动星图。"><link rel="stylesheet" href="style.css?v=xingchen-5"></head><body>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>星辰入轨 · 掌中宇宙</title><meta name="description" content="张开手掌，让星云化为旋转星尘。可用摄像头手势或鼠标体验的互动星图。"><link rel="preload" as="image" href="assets/nebula-flower.webp" type="image/webp" fetchpriority="high"><link rel="preload" as="image" href="assets/orion.webp" type="image/webp" fetchpriority="high"><link rel="stylesheet" href="style.css?v=xingchen-6"></head><body>
 <dialog id="prologue" aria-labelledby="prologue-title">
   <canvas aria-hidden="true"></canvas>
+  <p class="prologue-loading" role="status">正在加载星云</p>
   <div class="prologue-copy">
-    <h2 id="prologue-title">星辰</h2>
+    <h2 id="prologue-title">星尘</h2>
     <p lang="en">STARDUST</p>
   </div>
   <button type="button" autofocus>跳过序章 ↗</button>
 </dialog>
-<script src="intro.js?v=xingchen-5"></script>
+<script src="intro.js?v=xingchen-6"></script>
 <canvas id="scene" aria-label="从星图渐变为同色三维旋转星尘"></canvas>
 <canvas id="ink" aria-label="临时发光字迹"></canvas>
 <div id="atlas-ui">
@@ -38,4 +39,4 @@
 <div class="state"><i></i><span id="status" role="status">正在唤醒星尘…</span></div><div class="actions"><button id="toggleCameraPreview" type="button" aria-controls="cameraFrame" aria-expanded="false" hidden>显示预览</button><button id="start" class="primary">开启手掌交互 ↗</button></div></footer>
 <div class="credit" id="photoCredit"><a href="https://esahubble.org/images/heic0601a/" target="_blank" rel="noopener noreferrer">NASA, ESA, M. Robberto (Space Telescope Science Institute/ESA) and the Hubble Space Telescope Orion Treasury Project Team</a> · <a href="./素材来源.txt" target="_blank" rel="noopener">素材与许可 ↗</a></div><div id="toast" role="status"></div><div class="clean-hint">按 H 恢复界面</div>
 </div>
-<script src="app.js?v=xingchen-5"></script><script src="hand-runtime.js?v=xingchen-1"></script><script src="canvas-universe.js?v=xingchen-4"></script><script src="volume.js?v=xingchen-1"></script></body></html>
+<script src="app.js?v=xingchen-6"></script><script src="hand-runtime.js?v=xingchen-1"></script><script src="canvas-universe.js?v=xingchen-6"></script><script src="volume.js?v=xingchen-6"></script></body></html>

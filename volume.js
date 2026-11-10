@@ -37,10 +37,13 @@ const photoFS=`precision highp float;
   gl_FragColor=vec4(c*(1.12+glow*.32),mask*uOpacity*surface);
  }`;
 let photoProgram,photoModels=[],photoImages=[];
-function createPhotoModel(image,id){
+async function createPhotoModel(image,id){
  const side=768,c=document.createElement('canvas');c.width=side;c.height=Math.round(side*image.height/image.width);const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(image,0,0,c.width,c.height);const data=ctx.getImageData(0,0,c.width,c.height).data;
- const sample=(u,v)=>{const x=clamp(Math.round(u*(c.width-1)),0,c.width-1),y=clamp(Math.round((1-v)*(c.height-1)),0,c.height-1),k=(y*c.width+x)*4;return [data[k]/255,data[k+1]/255,data[k+2]/255];};
- const m=makeModel();m.volume=[];for(let i=0;i<N;i++){
+ const pixel=(u,v)=>{const x=Math.round(u*(c.width-1)),y=Math.round((1-v)*(c.height-1));return (y*c.width+x)*4;};
+ const sample=(u,v)=>{const k=pixel(u,v);return [data[k]/255,data[k+1]/255,data[k+2]/255];};
+ const m=makeModel();m.volume=[];let sliceStarted=performance.now();
+ for(let i=0;i<N;i++){
+  if(i%2048===0&&performance.now()-sliceStarted>9){await new Promise(requestAnimationFrame);sliceStarted=performance.now();}
   let u,v,col,l,r;for(let k=0;k<80;k++){u=random();v=random();col=sample(u,v);l=Math.max(...col);r=Math.hypot(u*2-1,v*2-1);if(r<.98&&random()<l*l*.9+.001)break;}
   const [origin]=photoShape(u,v,id,l);
   const edge=Math.sqrt(Math.max(0,1-r*r));
@@ -61,9 +64,16 @@ function createPhotoModel(image,id){
   put(m,i,expanded,closed,color,size,alpha,kind);
  }
  if(!gl)return m;
- let verts=[];const vertex=(u,v)=>{let col=sample(u,v);verts.push(u,v,Math.max(...col));};for(let j=0;j<128;j++)for(let i=0;i<192;i++){let u=i/192,v=j/128,uu=(i+1)/192,vv=(j+1)/128;vertex(u,v);vertex(uu,v);vertex(u,vv);vertex(u,vv);vertex(uu,v);vertex(uu,vv);}
+ const verts=new Float32Array(192*128*18);
+ let offset=0;
+ const vertex=(u,v)=>{
+  const k=pixel(u,v);
+  verts[offset++]=u;verts[offset++]=v;
+  verts[offset++]=Math.max(data[k],data[k+1],data[k+2])/255;
+ };
+ for(let j=0;j<128;j++)for(let i=0;i<192;i++){let u=i/192,v=j/128,uu=(i+1)/192,vv=(j+1)/128;vertex(u,v);vertex(uu,v);vertex(u,vv);vertex(u,vv);vertex(uu,v);vertex(uu,vv);}
  const texCanvas=document.createElement('canvas'),texScale=Math.min(1,2048/Math.max(image.width,image.height));texCanvas.width=Math.round(image.width*texScale);texCanvas.height=Math.round(image.height*texScale);texCanvas.getContext('2d').drawImage(image,0,0,texCanvas.width,texCanvas.height);
- const tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,texCanvas);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);photoModels.push({vertices:buffer(new Float32Array(verts)),count:verts.length/3,texture:tex});return m;
+ const tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,texCanvas);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);photoModels[id]={vertices:buffer(verts),count:verts.length/3,texture:tex};return m;
 }
 function particlePose(m,i,amount,angle,t,release){
  const j=i*3,phase=m.meta[i*4+3];
@@ -76,6 +86,31 @@ function particlePose(m,i,amount,angle,t,release){
  return [x*cs-y*sn,x*sn+y*cs,z];
 }
 function drawPhoto(id,scale,opacity){if(opacity<.001)return;let m=photoModels[id];useProgram(photoProgram);common(photoProgram,scale);uniform(photoProgram,'uBody',id);uniform(photoProgram,'uOpacity',opacity);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,m.texture);gl.uniform1i(gl.getUniformLocation(photoProgram,'uTexture'),0);attr(photoProgram,'aPhoto',m.vertices,3);gl.depthMask(true);gl.enable(gl.DEPTH_TEST);gl.clear(gl.DEPTH_BUFFER_BIT);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.drawArrays(gl.TRIANGLES,0,m.count);gl.disable(gl.DEPTH_TEST);gl.depthMask(false);gl.blendFunc(gl.SRC_ALPHA,gl.ONE);}
-async function loadObservations(){const urls=['orion-full.jpg','spiral-full.jpg','nebula-flower.png'];photoImages=await Promise.all(urls.map(async url=>{let img=new Image();img.src='./assets/'+url;await img.decode();return img;}));photoProgram=gl?program(photoVS,photoFS):null;models=photoImages.map(createPhotoModel);modelBuffers=gl?models.map(upload):models.map(()=>({}));bodyBuffers=modelBuffers[0];previousBuffers=bodyBuffers;}
+const observationSources=[
+ ['orion.webp','orion-full.jpg'],
+ ['spiral.webp','spiral-full.jpg'],
+ ['nebula-flower.webp','nebula-flower.png']
+];
+async function loadObservation(id, after){
+ for(const url of observationSources[id]){
+  const image=new Image();
+  image.fetchPriority=id===1?'low':'high';
+  image.src='./assets/'+url;
+  try{await image.decode();}catch{continue;}
+  try{
+   if(after)await after;
+   const model=await createPhotoModel(image,id);
+   modelBuffers[id]=gl?upload(model):{};
+   photoImages[id]=image;
+   models[id]=model;
+   return true;
+  }catch(error){
+   console.warn('星图构建失败',url,error);
+   return false;
+  }
+ }
+ console.warn('星图加载失败',observationSources[id][0]);
+ return false;
+}
 
 boot();

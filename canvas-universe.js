@@ -3,7 +3,9 @@
 async function startCanvasUniverse(){
  resize();const ctx=canvas.getContext('2d',{willReadFrequently:true});
  if(!ctx)throw Error('请重新打开页面以恢复画面');
- status('正在唤醒蓝金云气…');await loadObservations();
+ status('正在唤醒蓝金云气…');
+ await Promise.all(bodies.map((_,id)=>loadObservation(id)));
+ showInitialObservation();
  const stars=Array.from({length:1600},()=>({x:random(),y:random(),r:.3+random()*.9,t:random()*TAU}));
  const cols=24,rows=16,reliefs=[];
  const textures=photoImages.map(image=>{
@@ -124,6 +126,7 @@ async function startCanvasUniverse(){
   ctx.globalCompositeOperation='source-over';
  }
  function celestialBody(id,scale,alpha){
+  if(!modelBuffers[id])return;
   cloudVolume(id,scale,alpha,false);
   surface(id,scale,alpha);
   cloudVolume(id,scale,alpha,true);

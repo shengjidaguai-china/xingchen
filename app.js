@@ -109,7 +109,7 @@ function initGL(){
  let stars={open:[],closed:[],color:[],meta:[]};for(let i=0;i<2300;i++){let p=[(random()-.5)*27,(random()-.5)*17,-2-random()*7];stars.open.push(...p);stars.closed.push(...p);stars.color.push(.5+random()*.5,.65+random()*.35,.8+random()*.2);stars.meta.push(random()<.02?4.8:1+random()*1.3,.25+random()*.65,1,random()*TAU);}for(let k in stars)stars[k]=new Float32Array(stars[k]);starBuffers=upload(stars);
 }
 let modelBuffers=[];
-function selectBody(i){i=(i+bodies.length)%bodies.length;if(!models.length)return;if(transition<.999){queuedBody=i;return;}if(i===bodyIndex)return;previousBuffers=bodyBuffers;bodyIndex=(i+bodies.length)%bodies.length;bodyBuffers=modelBuffers[bodyIndex];transition=0;transitionStart=time;targetYaw=0;targetPitch=basePitch(bodyIndex);swipeSamples=[];swipeState=null;lastSwitch=performance.now();
+function selectBody(i){i=(i+bodies.length)%bodies.length;if(!modelBuffers[i]){status('这张星图尚未就绪 · 稍后可重试');return;}if(transition<.999){queuedBody=i;return;}if(i===bodyIndex)return;previousBuffers=bodyBuffers;bodyIndex=i;bodyBuffers=modelBuffers[bodyIndex];transition=previousBuffers?0:1;transitionStart=time;targetYaw=0;targetPitch=basePitch(bodyIndex);swipeSamples=[];swipeState=null;lastSwitch=performance.now();
  const credits=[
   ['https://esahubble.org/images/heic0601a/', 'NASA, ESA, M. Robberto (Space Telescope Science Institute/ESA) and the Hubble Space Telescope Orion Treasury Project Team'],
   ['https://esahubble.org/images/heic0602a/', 'European Space Agency & NASA'],
@@ -118,6 +118,16 @@ function selectBody(i){i=(i+bodies.length)%bodies.length;if(!models.length)retur
  const credit=$('#photoCredit a');
  [credit.href,credit.textContent]=credits[bodyIndex];
  const b=bodies[bodyIndex];$('#objectName').textContent=b.name;$('#objectEnglish').textContent=b.english;$('#objectNumber').textContent=b.number;document.querySelectorAll('[data-body]').forEach(el=>{el.classList.toggle('active',+el.dataset.body===bodyIndex);el.setAttribute('aria-pressed',String(+el.dataset.body===bodyIndex));});toast(`0${bodyIndex+1} / ${b.name}`);
+}
+function showInitialObservation(){
+ if(bodyBuffers)return;
+ if(modelBuffers[0]){
+  bodyBuffers=previousBuffers=modelBuffers[0];
+  return;
+ }
+ const first=modelBuffers.findIndex(Boolean);
+ if(first<0)throw Error('暂时无法加载星图，请重试');
+ selectBody(first);
 }
 function updateTransition(){if(transition<1)transition=smooth(clamp((time-transitionStart)/2));if(transition>=1&&queuedBody!==null){const next=queuedBody;queuedBody=null;selectBody(next);}}
 function advanceOpening(dt){
@@ -162,9 +172,10 @@ function paintPrologue(sequence, drawBody){
  opening=sequence.opening;orbitAngle=sequence.orbit;
  drawBody(2,bodyScale(2)*sequence.scale,sequence.light);
  opening=savedOpening;orbitAngle=savedOrbit;
- if(sequence.reveal>0)drawBody(0,bodyScale(0),sequence.reveal);
+ if(sequence.reveal>0)drawBody(bodyIndex,bodyScale(bodyIndex),sequence.reveal);
 }
 function drawBody(id,scale,opacity){
+ if(!modelBuffers[id])return;
  drawPhoto(id,scale,opacity);
  drawPoints(modelBuffers[id],N,scale,opacity);
 }
@@ -409,8 +420,16 @@ async function boot(){
    await startCanvasUniverse();
   }else{
    initGL();resize();requestAnimationFrame(frame);
-   await loadObservations();
-   if(prologue.waiting){
+   photoProgram=program(photoVS,photoFS);
+   const pinwheel=loadObservation(1,prologue.finished);
+   const orion=loadObservation(0).then(loaded=>{if(loaded)showInitialObservation();return loaded;});
+   const [homeReady,flowerReady]=await Promise.all([orion,loadObservation(2)]);
+   if(!homeReady&&!flowerReady){
+    prologue.close();
+    await pinwheel;
+   }
+   showInitialObservation();
+   if(prologue.waiting&&flowerReady){
     // Submit the photo and dust shaders under the loading overlay before timing the reveal.
     drawSky();
     paintPrologue({opening:.42,scale:1,orbit:0,light:1,reveal:.2},drawBody);
@@ -419,7 +438,8 @@ async function boot(){
    }
    status('完整星图 · 张开手掌或滚轮放大，化为旋转星尘');
   }
-  await prologue.start();
+  if(modelBuffers[2])await prologue.start();
+  else prologue.close();
  }catch(e){
   prologue.close();
   status('画面加载失败：'+e.message);toast(e.message);let retry=document.createElement('button');retry.textContent='恢复宇宙画面 ↻';retry.className='recover-scene';retry.onclick=()=>location.reload();document.body.append(retry);console.error(e);
