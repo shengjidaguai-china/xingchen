@@ -2,7 +2,7 @@
 
 <p align="center">简体中文 · <a href="./README_EN.md">English</a></p>
 
-<h1 align="center">星辰入轨</h1>
+<h1 align="center">星尘</h1>
 <p align="center">张开手掌，让星图沿着云纹散开，化成一片有厚度、会旋转的星尘。</p>
 
 <p align="center">
